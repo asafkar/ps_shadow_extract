@@ -1,52 +1,16 @@
 import os
+
+os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
+
 import cv2
 import torch
 import numpy as np
 import torch.utils.data as data
-import OpenEXR as exr
-import Imath
-from transforms import *
+from .transforms import *
 import kornia
 
+
 np.random.seed(0)
-
-
-def readEXR(filename):
-	"""Read color + depth data from EXR image file.
-
-	Parameters
-	----------
-	filename : str
-		File path.
-
-	Returns
-	-------
-	img : RGB or RGBA image in float32 format. Each color channel
-		  lies within the interval [0, 1].
-		  Color conversion from linear RGB to standard RGB is performed
-		  internally. See https://en.wikipedia.org/wiki/SRGB#The_forward_transformation_(CIE_XYZ_to_sRGB)
-		  for more information.
-
-	Z : Depth buffer in float32 format or None if the EXR file has no Z channel.
-	"""
-	exrfile = exr.InputFile(filename)
-	header = exrfile.header()
-
-	dw = header['dataWindow']
-	isize = (dw.max.y - dw.min.y + 1, dw.max.x - dw.min.x + 1)
-
-	channelData = dict()
-
-	# convert all channels in the image to numpy arrays
-	for c in header['channels']:
-		C = exrfile.channel(c, Imath.PixelType(Imath.PixelType.FLOAT))
-		C = np.frombuffer(C, dtype=np.float32)
-		C = np.reshape(C, isize)
-		channelData[c] = C
-
-	Z = channelData['R']
-	return Z
-
 
 class BlenderDataset(data.Dataset):
 	def __init__(self, args, root, split='train', num_val=2, normalize_lights=True, in_img_num=32, patch_size=None):
@@ -117,7 +81,8 @@ class BlenderDataset(data.Dataset):
 		# diffuse_color_path = path_base + "_diffuse_color1.png"
 		# diffuse_color_gt = cv2.cvtColor(cv2.imread(diffuse_color_path), cv2.COLOR_BGR2RGB).astype(
 		# 	np.float32) / 255.0
-		depth_exr = readEXR(path_base + "_depth1.exr") if os.path.exists(path_base + "_depth1.exr") else None
+		depth_exr = cv2.imread(path_base + "_depth1.exr", cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)[:, :, 0]
+
 		depth_img = depth_exr
 
 		if self.patch_size:

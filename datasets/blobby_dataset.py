@@ -1,14 +1,13 @@
 from __future__ import division
 import os
 import numpy as np
-# from scipy.ndimage import imread
 from imageio import imread
 import torchvision
 
 import torch
 import torch.utils.data as data
 import re
-from transforms import *
+from .transforms import *
 import kornia
 np.random.seed(0)
 

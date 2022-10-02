@@ -1,0 +1,8 @@
+torch > 1.10
+einops
+numpy
+kornia
+opencv_python
+matplotlib
+imageio
+tensorboard > 2.8
